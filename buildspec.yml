@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+
+  pre_build:
+    commands:
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - docker build -t your-ecr-repo:latest .
+  build:
+    commands:
+      - docker push your-ecr-repo:latest
+
+post_build:
+  commands:
+    - kubectl apply -f k8s-manifests/  # Deploy Kubernetes manifests (e.g., Deployment, Service, Ingress)
