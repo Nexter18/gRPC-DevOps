@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 resource "aws_ecr_repository" "python_server_repo" {
   name = "python-server-repo"
 }
@@ -133,19 +129,19 @@ resource "aws_lb" "app_lb" {
   name               = "python-app-alb"
   internal           = false
   load_balancer_type = "application"
-  subnets            = var.eks_subnets
+  subnets            = module.vpc.private_subnets
 }
 
 resource "aws_lb_target_group" "app_target_group" {
   name     = "python-app-tg"
   port     = 50051
   protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  vpc_id   = module.vpc.vpc_id
 }
 
 resource "aws_lb_listener" "app_listener" {
   load_balancer_arn = aws_lb.app_lb.arn
-  port              = 80
+  port              = 50051
   protocol          = "HTTP"
 
   default_action {
@@ -168,7 +164,6 @@ resource "kubernetes_ingress" "app_ingress" {
   }
   spec {
     rule {
-      host = var.ingress_host
       http {
         path {
           backend {
